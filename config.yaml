@@ -1,0 +1,19 @@
+# Configuración del Scraper de Noticias
+
+# Tema de búsqueda (Para varias palabras, mejor úsalas juntas o en una sola frase)
+topic: "LAVADO DE ACTIVOS CORRUPCION TERRORISMO NARCOTRAFICO"
+
+# Región / País
+region: "CO"
+
+# Idioma
+language: "es"
+
+# Número máximo de artículos a procesar
+max_articles: 100
+
+# Nombre del archivo de salida
+output_filename: "noticias_resultados"
+
+# Configuración de búsqueda avanzada
+days_back: 7
