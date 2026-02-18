@@ -52,8 +52,8 @@ def get_news():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Render asigna un puerto en una variable de entorno llamada PORT
-    port = int(os.environ.get("PORT", 5000))
-    # '0.0.0.0' permite que el servicio sea accesible desde el exterior
-    app.run(host='0.0.0.0', port=port)
+    print("Iniciando Servidor Flask...")
+    print("Abre tu navegador en: http://localhost:5000")
+    app.run(debug=True, port=5001)
+
 
