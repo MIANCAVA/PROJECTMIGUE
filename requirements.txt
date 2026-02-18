@@ -1,0 +1,8 @@
+feedparser
+newspaper3k
+pyyaml
+pandas
+lxml_html_clean
+flask
+requests
+gunicorn
