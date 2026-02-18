@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Riesgos AML/SARLAFT (Dinámico)</title>
+    <style>
+        :root {
+            --primary: #7e22ce;
+            --primary-dark: #581c87;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .settings-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .tag {
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tag button {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .tag-input-field {
+            border: none;
+            outline: none;
+            flex-grow: 1;
+            padding: 0.25rem;
+            font-size: 0.9rem;
+            min-width: 150px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Stats & Loading */
+        .dashboard-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-text {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Grid */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .article-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #f1f5f9;
+        }
+
+        .article-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .source-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: #eff6ff;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title a {
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .card-title a:hover {
+            color: var(--primary);
+        }
+
+        .card-body {
+            padding: 1.25rem;
+            flex-grow: 1;
+        }
+
+        .summary {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="status-badge">● Servidor Activo</div>
+        <div class="container">
+            <h1>Monitor de Riesgos (Live)</h1>
+            <p>Búsqueda en tiempo real y configuración dinámica</p>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <div class="settings-header">
+                <span class="settings-title">Términos de Búsqueda (AML/SARLAFT)</span>
+            </div>
+
+            <div class="tags-input" id="tagsContainer">
+                <input type="text" class="tag-input-field" id="newTagInput"
+                    placeholder="Añadir término y presionar Enter...">
+            </div>
+
+            <div class="controls">
+                <select id="periodSelect" class="tag-input-field"
+                    style="border: 2px solid #e2e8f0; border-radius: 8px; padding: 0.5rem; margin-right: 1rem;">
+                    <option value="1d">Últimas 24 horas</option>
+                    <option value="7d" selected>Última semana</option>
+                    <option value="1m">Último mes</option>
+                    <option value="1y">Último año</option>
+                </select>
+                <div class="loader" id="loader"></div>
+                <button class="btn" id="searchBtn" onclick="fetchNews()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Actualizar Noticias
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="dashboard-meta">
+            <span class="stats-text" id="statsText">Esperando actualización...</span>
+            <button class="btn" style="background-color: #10b981;" onclick="exportCSV()">Exportar CSV</button>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="grid" class="news-grid">
+            <!-- Cards injected by JS -->
+        </div>
+
+    </div>
+
+    <script>
+        let currentTopics = [];
+        let currentArticles = [];
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+
+            // Enter key for tags
+            document.getElementById('newTagInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addTag(this.value);
+                    this.value = '';
+                }
+            });
+        });
+
+        // --- Configuration Logic ---
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+                currentTopics = data.topics || [];
+                renderTags();
+                // Auto fetch news on load
+                fetchNews();
+            } catch (e) {
+                console.error("Error loading config:", e);
+            }
+        }
+
+        async function saveConfig() {
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topics: currentTopics })
+                });
+            } catch (e) {
+                console.error("Error saving config:", e);
+            }
+        }
+
+        function renderTags() {
+            const container = document.getElementById('tagsContainer');
+            // Clear existing tags but keep input
+            const input = document.getElementById('newTagInput');
+
+            // Remove old tags
+            Array.from(container.getElementsByClassName('tag')).forEach(el => el.remove());
+
+            // Add current tags
+            currentTopics.forEach((topic, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `${topic} <button onclick="removeTag(${index})">×</button>`;
+                container.insertBefore(tag, input);
+            });
+        }
+
+        function addTag(term) {
+            if (term && !currentTopics.includes(term)) {
+                currentTopics.push(term);
+                renderTags();
+                saveConfig();
+            }
+        }
+
+        function removeTag(index) {
+            currentTopics.splice(index, 1);
+            renderTags();
+            saveConfig();
+        }
+
+        // --- News Logic ---
+        async function fetchNews() {
+            const btn = document.getElementById('searchBtn');
+            const loader = document.getElementById('loader');
+            const grid = document.getElementById('grid');
+            const stats = document.getElementById('statsText');
+            const period = document.getElementById('periodSelect').value;
+
+            btn.disabled = true;
+            loader.style.display = 'block';
+            stats.textContent = "Buscando noticias en tiempo real...";
+            grid.style.opacity = '0.5';
+
+            try {
+                const res = await fetch(`/api/news?period=${period}`);
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error);
+
+                currentArticles = data;
+                renderGrid(data);
+                stats.textContent = `Se encontraron ${data.length} artículos recientes.`;
+
+            } catch (e) {
+                console.error(e);
+                grid.innerHTML = `<div style="grid-column: 1/-1; color: red; text-align: center;">Error al buscar noticias: ${e.message}</div>`;
+                stats.textContent = "Error en la búsqueda.";
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+                grid.style.opacity = '1';
+            }
+        }
+
+        function renderGrid(articles) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            if (articles.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;">No se encontraron resultados recientes.</div>';
+                return;
+            }
+
+            articles.forEach(article => {
+                const card = document.createElement('div');
+                card.className = 'article-card';
+
+                const summary = article['Resumen'].length > 150
+                    ? article['Resumen'].substring(0, 150) + '...'
+                    : article['Resumen'];
+
+                card.innerHTML = `
+                <div class="card-header">
+                    <span class="source-tag">${article['Tema']}</span>
+                    <h3 class="card-title">
+                        <a href="${article['Link']}" target="_blank">${article['Titulo']}</a>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="summary">${summary}</p>
+                    <div class="card-meta">
+                        ${article['Fecha Noticia']}
+                    </div>
+                </div>
+            `;
+                grid.appendChild(card);
+            });
+        }
+
+        function exportCSV() {
+            if (!currentArticles.length) return alert("No hay datos para exportar");
+
+            const headers = ['Fecha Noticia', 'Titulo', 'Link', 'Resumen', 'Personas Mencionadas', 'Tema'];
+            const csvRows = [headers.join(',')];
+
+            currentArticles.forEach(a => {
+                const row = headers.map(header => {
+                    let val = a[header] || '';
+                    val = String(val).replace(/"/g, '""');
+                    return `"${val}"`;
+                });
+                csvRows.push(row.join(','));
+            });
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'reporte_dinamico.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+
+</html>
